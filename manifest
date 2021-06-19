@@ -1,0 +1,70 @@
+name       = "youtube"
+depends_on = []
+image      = "app/youtube"
+image_tag  = build.sha
+
+env = {
+  YOUTUBE_DB_NAME = app.database_name
+}
+
+configuration {
+  paths = [app.path.config.main]
+}
+
+secrets {
+  policies = app.policies
+
+  source {
+    key      = app.path.secret.db
+    mappings = {
+      YOUTUBE_DB_USER = "username"
+      YOUTUBE_DB_PASS = "password"
+    }
+  }
+
+  source {
+    key      = app.path.secret.sentry
+    mappings = {
+      SENTRY_DSN = "dsn"
+    }
+  }
+
+  source {
+    key      = app.path.secret.aws
+    mappings = {
+      AWS_ACCESS_KEY_ID     = "access_key"
+      AWS_SECRET_ACCESS_KEY = "secret_key"
+    }
+  }
+}
+
+web api {
+  command        = serve_wsgi("youtube.app:app")
+  service_name   = "youtube"
+
+  check "api" {
+    path = "/health"
+  }
+
+  check "database" {
+    path               = "/dbhealth"
+    restart_on_failure = true
+  }
+}
+
+cron processor {
+  command  = pymodule("youtube.cron.process_cron")
+  schedule = "*/10 * * * * *"
+}
+
+script migration {
+  work_dir = "/migrations"
+  command  = exec("/usr/local/bin/dbmate", "up")
+
+  env = {
+    DATABASE_HOST     = "YOUTUBE_DB_URL"
+    DATABASE_NAME     = "YOUTUBE_DB_NAME"
+    DATABASE_PASSWORD = "YOUTUBE_DB_PASS"
+    DATABASE_USER     = "YOUTUBE_DB_USER"
+  }
+}

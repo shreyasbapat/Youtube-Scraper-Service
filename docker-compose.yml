@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  youtube_db_dev:
+    image: postgres:12
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: fampay_user
+      POSTGRES_USER: fampay_user
+      POSTGRES_DB: youtube_dev
+
+  youtube_dev_dbmate:
+    build: ./dbmate-docker
+    environment:
+      DATABASE_URL: postgres://fampay_user:fampay_user@youtube_db_dev:5432/youtube_dev?sslmode=disable
+    volumes:
+      - ./:/usr/data
+    depends_on:
+      - youtube_db_dev
+    working_dir: /usr/data
+    command: bash -c "dbmate wait && dbmate up && dbmate dump"
+
+  youtube_web:
+    build: ./
+    volumes:
+      - ./:/app
+    environment:
+      - FLASK_APP=youtube/app.py
+      - YOUTUBE_DB_URL=youtube_db_dev
+      - YOUTUBE_DB_USER=fampay_user
+      - YOUTUBE_DB_PASS=fampay_user
+      - YOUTUBE_DB_NAME=youtube_dev
+
+    depends_on:
+      - youtube_dev_dbmate
+    ports:
+      - "9198:5000"
+    command: flask run --host="0.0.0.0"
+
+  youtube_schedule:
+    build: ./
+    volumes:
+      - ./:/app
+    depends_on:
+      - youtube_web
+    command: python youtube/schedule.py
