@@ -84,7 +84,9 @@ def test_fetch_videos(app: APIFlask):
         response = client.get("/videos/auto",)
         assert HTTPStatus.OK == response.status_code
     with app.test_client() as client:
-        response = client.get("/api/v1/youtube/videos", query_string={"page": 1, "query": "Live"})
+        response = client.get(
+            "/api/v1/youtube/videos", query_string={"page": 1, "query": "Live"}
+        )
 
     l = response.get_json()["data"]["videos"]
 

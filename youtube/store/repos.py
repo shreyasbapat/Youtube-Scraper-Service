@@ -39,9 +39,7 @@ class VideoRepo:
 
     def get_all(self) -> List[Video]:
         video_models = (
-            db.session.query(VideoModel)
-                .order_by(VideoModel.published_at.desc())
-                .all()
+            db.session.query(VideoModel).order_by(VideoModel.published_at.desc()).all()
         )
         return [
             Video(
@@ -58,7 +56,8 @@ class VideoRepo:
         video_models = (
             db.session.query(VideoModel)
             .filter(
-                VideoModel.title.ilike(f'%{q}%') | VideoModel.description.ilike(f'%{q}%')
+                VideoModel.title.ilike(f"%{q}%")
+                | VideoModel.description.ilike(f"%{q}%")
             )
             .order_by(VideoModel.published_at.desc())
             .all()
