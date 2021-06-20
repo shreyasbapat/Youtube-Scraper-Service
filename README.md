@@ -14,9 +14,10 @@ The configurations can be found in [youtube/utils/config.py](https://github.com/
 
 I have added the key and query as default argument, which can be changed and ideally, should directly be taken from the environment.
 
+**WARNING: If DB does not fill in some time, please try with new API keys, as they often run into 403's**
+
+
 After running the app, wait for some time for the DB to be populated, then run:
-
-
 
 ```bash
 curl --location --request GET '127.0.0.1:9198/api/v1/youtube/videos?page=1&query=LIVE'
